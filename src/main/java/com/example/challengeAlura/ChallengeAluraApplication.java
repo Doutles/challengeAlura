@@ -1,6 +1,7 @@
 package com.example.challengeAlura;
 
-
+import com.example.challengeAlura.model.Book;
+import com.example.challengeAlura.model.Person;
 import com.example.challengeAlura.service.GutendexService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -39,6 +40,7 @@ public class ChallengeAluraApplication implements CommandLineRunner {
 			int opcion = scanner.nextInt();
 			scanner.nextLine();  // Consumir el salto de línea después de la opción
 
+
 			switch (opcion) {
 				case 1:
 					// Opción 1: Buscar un libro
@@ -57,6 +59,7 @@ public class ChallengeAluraApplication implements CommandLineRunner {
 					System.out.println("Opción no válida. Por favor seleccione una opción válida.");
 					break;
 			}
+
 		}
 
 		scanner.close();  // Cerrar el scanner
@@ -65,15 +68,43 @@ public class ChallengeAluraApplication implements CommandLineRunner {
 	// Método para realizar la búsqueda de libros
 	private void buscarLibro(String query) {
 		System.out.println("Buscando el libro: " + query);
-		var bookListResponse = gutendexService.searchBooksByTitle(query);
+		try {
+			var firstBook = gutendexService.searchFirstBookByTitle(query);
 
-		if (bookListResponse != null && bookListResponse.getResults().size() > 0) {
-			System.out.println("Libros encontrados:");
-			bookListResponse.getResults().forEach(book -> {
-				System.out.println("ID: " + book.getId() + " | Título: " + book.getTitle());
-			});
-		} else {
-			System.out.println("No se encontraron libros para la búsqueda: " + query);
+			if (firstBook != null) {
+				mostrarInformacionCompletaDelLibro(firstBook);
+			} else {
+				System.out.println("No se encontraron libros para la búsqueda: " + query);
+			}
+		} catch (Exception e) {
+			System.err.println("Ocurrió un error al buscar el libro: " + e.getMessage());
 		}
 	}
+
+	private void mostrarInformacionCompletaDelLibro(Book book) {
+		System.out.println("Información del libro encontrado:");
+		System.out.println("ID: " + book.getId());
+		System.out.println("Título: " + book.getTitle());
+
+		// Mostrar los autores
+		if (book.getAuthors() != null && !book.getAuthors().isEmpty()) {
+			System.out.print("Autor: ");
+			String autores = book.getAuthors().stream()
+					.map(Person::getName) // Obtener el nombre de cada autor
+					.reduce((a, b) -> a + ", " + b) // Combinar los nombres en una cadena
+					.orElse("No disponible");
+			System.out.println(autores);
+		} else {
+			System.out.println("Autores: No disponible");
+		}
+
+		// Mostrar el lenguaje
+		System.out.println("Lenguaje: " + book.getLanguages());
+
+
+
+
+	}
+
+
 }
